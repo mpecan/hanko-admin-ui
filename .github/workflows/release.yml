@@ -78,6 +78,69 @@ jobs:
             "${ARCHIVE}" "${ARCHIVE}.sha256" \
             --repo "${{ github.repository }}" --clobber
 
+  build-linux:
+    name: Build Linux bundles
+    if: startsWith(inputs.tag || github.event.release.tag_name, 'v')
+    # Build on the oldest supported Ubuntu for the widest glibc compatibility.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      # Tauri Linux build deps; `rpm` provides rpmbuild for the .rpm bundle,
+      # `libfuse2` lets appimagetool run.
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf \
+            rpm libfuse2
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # Runs beforeBuildCommand (npm run build) then bundles .deb, .rpm, AppImage.
+      - name: Build Tauri bundles
+        run: npm run tauri build -- --bundles deb,rpm,appimage
+
+      - name: Collect and rename bundles
+        shell: bash
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          BUNDLE=src-tauri/target/release/bundle
+          shopt -s nullglob
+          declare -A ext=( [deb]=deb [rpm]=rpm [appimage]=AppImage )
+          : > upload-list.txt
+          for dir in deb rpm appimage; do
+            for f in "$BUNDLE/$dir"/*."${ext[$dir]}"; do
+              name="hanko-admin-v${VERSION}-linux-x86_64.${ext[$dir]}"
+              cp "$f" "$name"
+              sha256sum "$name" | awk '{print $1}' > "$name.sha256"
+              printf '%s\n%s\n' "$name" "$name.sha256" >> upload-list.txt
+            done
+          done
+          echo "Built:"; cat upload-list.txt
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mapfile -t files < upload-list.txt
+          gh release upload "${RELEASE_TAG}" "${files[@]}" \
+            --repo "${{ github.repository }}" --clobber
+
   crates:
     name: Publish to crates.io
     if: startsWith(inputs.tag || github.event.release.tag_name, 'v')

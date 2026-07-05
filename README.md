@@ -25,7 +25,17 @@ brew install mpecan/tools/hanko-admin
 cargo install hanko-admin
 ```
 
-Prebuilt macOS binaries are also attached to each [GitHub Release](https://github.com/mpecan/hanko-admin-ui/releases).
+**Linux packages** — `.deb`, `.rpm`, and an `.AppImage` are attached to each
+[GitHub Release](https://github.com/mpecan/hanko-admin-ui/releases). For example:
+
+```bash
+# Debian/Ubuntu
+sudo dpkg -i hanko-admin-v<version>-linux-x86_64.deb
+# Or run the portable AppImage directly
+chmod +x hanko-admin-v<version>-linux-x86_64.AppImage && ./hanko-admin-v<version>-linux-x86_64.AppImage
+```
+
+Prebuilt macOS binaries are also attached to each release.
 
 ## Features
 
