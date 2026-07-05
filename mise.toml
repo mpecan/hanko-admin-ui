@@ -1,0 +1,64 @@
+# mise task runner & tool versions — https://mise.jdx.dev
+#
+# Quick start:
+#   mise install        # install pinned Node + Rust toolchains
+#   mise run dev        # launch the desktop app
+#   mise run check      # everything CI runs (format, lint, tests, build)
+#
+# List all tasks:  mise tasks
+
+[tools]
+node = "22"
+rust = "stable"
+
+[tasks.install]
+description = "Install frontend dependencies"
+run = "npm install"
+
+[tasks.dev]
+description = "Run the desktop app in development mode"
+run = "npm run tauri dev"
+
+[tasks.build]
+description = "Type-check and build the frontend bundle"
+run = "npm run build"
+
+[tasks.bundle]
+description = "Build the production desktop app (installers/binaries)"
+run = "npm run tauri build"
+
+[tasks."test:rust"]
+description = "Run the Rust unit tests"
+dir = "src-tauri"
+run = "cargo test"
+
+[tasks."test:web"]
+description = "Type-check the frontend without emitting"
+run = "npx tsc --noEmit"
+
+[tasks.test]
+description = "Run all tests (Rust + frontend type-check)"
+depends = ["test:rust", "test:web"]
+
+[tasks."lint:rust"]
+description = "Lint the Rust code with clippy"
+dir = "src-tauri"
+run = "cargo clippy --all-targets -- -D warnings"
+
+[tasks."fmt"]
+description = "Format the Rust code"
+dir = "src-tauri"
+run = "cargo fmt"
+
+[tasks."fmt:check"]
+description = "Check Rust formatting (no changes)"
+dir = "src-tauri"
+run = "cargo fmt --check"
+
+[tasks.check]
+description = "Run everything CI runs: format check, lint, tests, build"
+depends = ["fmt:check", "lint:rust", "test", "build"]
+
+[tasks.clean]
+description = "Remove build artifacts (dist + Rust target)"
+run = ["rm -rf dist", "cargo clean --manifest-path src-tauri/Cargo.toml"]
