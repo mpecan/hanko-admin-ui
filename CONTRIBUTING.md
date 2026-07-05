@@ -98,10 +98,13 @@ Please prefix commits (or your squash-merge PR title) accordingly:
 - `fix: …` — a bug fix (patch bump)
 - `docs:`, `refactor:`, `perf:`, `test:`, `chore:`, `ci:` — as appropriate
 
-On merge to `main`, release-please maintains a "release PR" that updates the
-version (`src-tauri/Cargo.toml` + `tauri.conf.json`) and `CHANGELOG`. Merging
-that PR tags a `v<version>` release, which builds the macOS binaries, publishes
-to crates.io, and updates the Homebrew formula. Maintainers handle this.
+release-please tracks the whole repository (both the Tauri app and the
+frontend), so any qualifying commit — Rust or frontend — drives a release. On
+merge to `main`, it maintains a "release PR" that bumps the version across
+`package.json` (+ lockfile), `src-tauri/Cargo.toml`, and `tauri.conf.json`, and
+updates the `CHANGELOG`. Merging that PR tags a `v<version>` release, which
+builds the macOS/Linux artifacts, publishes to crates.io, and updates the
+Homebrew formula. Maintainers handle this.
 
 ## Reporting bugs & security issues
 
