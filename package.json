@@ -1,7 +1,7 @@
 {
   "name": "hanko-admin",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop console for administering a Hanko installation, built with Tauri 2.",
   "license": "MIT",
   "repository": {
