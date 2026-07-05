@@ -124,7 +124,9 @@ export function MetadataTab({ userId }: { userId: string }) {
 
   return (
     <QueryBoundary query={query}>
-      {(data) => <MetadataForm userId={userId} initial={data} />}
+      {/* The endpoint may return an empty body (null) when a user has no
+          metadata; fall back to an empty object so the form initializes. */}
+      {(data) => <MetadataForm userId={userId} initial={data ?? {}} />}
     </QueryBoundary>
   );
 }

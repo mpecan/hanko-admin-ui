@@ -21,10 +21,31 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 
+import type { ReactNode } from 'react';
+
 import { users } from '../api/endpoints';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { QueryError } from '../components/QueryError';
 import { Sensitive } from '../components/Sensitive';
 import { primaryEmail } from '../lib/ui';
+
+/** A tab panel whose contents are isolated by an ErrorBoundary, so a failing
+ *  tab shows an inline error instead of unmounting the whole tab view. */
+function TabPanel({
+  value,
+  label,
+  children,
+}: {
+  value: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <Tabs.Panel value={value} pt="lg">
+      <ErrorBoundary label={`the ${label} tab`}>{children}</ErrorBoundary>
+    </Tabs.Panel>
+  );
+}
 import { EmailsTab } from './user-detail/EmailsTab';
 import { MetadataTab } from './user-detail/MetadataTab';
 import { OtpTab } from './user-detail/OtpTab';
@@ -105,27 +126,27 @@ export function UserDetail() {
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value="overview" pt="lg">
+          <TabPanel value="overview" label="Overview">
             <OverviewTab user={query.data} onChanged={query.refetch} />
-          </Tabs.Panel>
-          <Tabs.Panel value="emails" pt="lg">
+          </TabPanel>
+          <TabPanel value="emails" label="Emails">
             <EmailsTab userId={id} />
-          </Tabs.Panel>
-          <Tabs.Panel value="metadata" pt="lg">
+          </TabPanel>
+          <TabPanel value="metadata" label="Metadata">
             <MetadataTab userId={id} />
-          </Tabs.Panel>
-          <Tabs.Panel value="sessions" pt="lg">
+          </TabPanel>
+          <TabPanel value="sessions" label="Sessions">
             <SessionsTab userId={id} />
-          </Tabs.Panel>
-          <Tabs.Panel value="passkeys" pt="lg">
+          </TabPanel>
+          <TabPanel value="passkeys" label="Passkeys">
             <WebAuthnTab userId={id} />
-          </Tabs.Panel>
-          <Tabs.Panel value="password" pt="lg">
+          </TabPanel>
+          <TabPanel value="password" label="Password">
             <PasswordTab userId={id} />
-          </Tabs.Panel>
-          <Tabs.Panel value="otp" pt="lg">
+          </TabPanel>
+          <TabPanel value="otp" label="OTP">
             <OtpTab userId={id} />
-          </Tabs.Panel>
+          </TabPanel>
         </Tabs>
       )}
     </Stack>
