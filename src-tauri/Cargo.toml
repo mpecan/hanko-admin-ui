@@ -1,6 +1,6 @@
 [package]
 name = "hanko-admin"
-version = "0.1.0" # x-release-please-version
+version = "0.1.1" # x-release-please-version
 description = "Hanko Admin — desktop console for administering a Hanko installation"
 authors = ["mpecan"]
 edition = "2021"
