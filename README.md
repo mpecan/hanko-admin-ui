@@ -11,6 +11,31 @@ optional Bearer API key, and access-proxy authentication (manual headers or an
 automated CLI login). Credentials live **only in the Rust process memory** for
 the session and are **never written to disk**.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/connect.png" alt="Connection screen" />
+      <br /><sub><b>Connect</b> — base URL, optional API key, and access-proxy auth</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/dashboard.png" alt="Dashboard" />
+      <br /><sub><b>Dashboard</b> — Admin API health and summary counts</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/users.png" alt="Users list with privacy mode enabled" />
+      <br /><sub><b>Users</b> — with privacy mode redacting emails</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/audit-logs.png" alt="Audit logs" />
+      <br /><sub><b>Audit logs</b> — filter by type, actor, and search</sub>
+    </td>
+  </tr>
+</table>
+
 ## Installation
 
 **Homebrew (macOS):**
