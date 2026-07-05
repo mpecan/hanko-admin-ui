@@ -54,9 +54,11 @@ Prebuilt macOS binaries are also attached to each release.
 - **Audit logs** — filter by event type, actor email, and free-text search.
 - **Webhooks** — create, edit (events + enabled), and delete.
 - **Metrics** — raw Prometheus output, copyable.
-- **Privacy mode** — an eye toggle in the header blurs all personally-identifiable
-  fields (emails, user IDs, IPs, user agents, usernames, metadata) for safe
-  screen-sharing; toggle again to reveal.
+- **Privacy mode** — an eye toggle in the header redacts all
+  personally-identifiable fields (emails, user IDs, IPs, user agents, usernames,
+  metadata) with fixed-width masks for safe screen-sharing. The real values are
+  never rendered into the DOM while hidden (so they can't be read from a
+  screenshot or the page), and emails get a convenient partial reveal.
 
 ## Architecture
 

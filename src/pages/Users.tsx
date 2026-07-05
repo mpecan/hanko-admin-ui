@@ -133,7 +133,7 @@ export function Users() {
                   <Table.Tr key={user.id}>
                     <Table.Td>
                       <Anchor component={Link} to={`/users/${user.id}`}>
-                        <Sensitive>{primaryEmail(user)}</Sensitive>
+                        <Sensitive reveal="email">{primaryEmail(user)}</Sensitive>
                       </Anchor>
                     </Table.Td>
                     <Table.Td>

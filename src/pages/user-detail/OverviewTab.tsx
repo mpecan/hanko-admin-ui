@@ -16,7 +16,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { users } from '../../api/endpoints';
 import type { PatchUserInput, User } from '../../api/types';
-import { Sensitive, useSensitiveInputStyles } from '../../components/Sensitive';
+import { Sensitive } from '../../components/Sensitive';
+import { usePrivacy } from '../../context/PrivacyContext';
 import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../lib/ui';
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -40,7 +41,7 @@ export function OverviewTab({
   onChanged: () => void;
 }) {
   const navigate = useNavigate();
-  const inputStyles = useSensitiveInputStyles();
+  const { hidden } = usePrivacy();
 
   const form = useForm({
     initialValues: {
@@ -165,7 +166,7 @@ export function OverviewTab({
               <TextInput
                 label="Username"
                 description="Clear to remove the username"
-                styles={inputStyles}
+                type={hidden ? 'password' : undefined}
                 {...form.getInputProps('username')}
               />
               <TextInput

@@ -99,7 +99,7 @@ export function EmailsTab({ userId }: { userId: string }) {
               {rows.map((email) => (
                 <Table.Tr key={email.id}>
                   <Table.Td>
-                    <Sensitive>{email.address}</Sensitive>
+                    <Sensitive reveal="email">{email.address}</Sensitive>
                   </Table.Td>
                   <Table.Td>
                     <Group gap={6}>

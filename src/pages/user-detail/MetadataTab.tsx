@@ -1,11 +1,19 @@
-import { Button, Card, Group, JsonInput, Stack, Text } from '@mantine/core';
+import {
+  Button,
+  Card,
+  Group,
+  JsonInput,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { metadata } from '../../api/endpoints';
 import type { UserMetadata } from '../../api/types';
 import { QueryBoundary } from '../../components/QueryBoundary';
-import { useSensitiveInputStyles } from '../../components/Sensitive';
+import { usePrivacy } from '../../context/PrivacyContext';
 import { notifyError, notifySuccess } from '../../lib/ui';
 
 function stringify(value: unknown): string {
@@ -58,7 +66,7 @@ function MetadataForm({
   initial: UserMetadata;
 }) {
   const queryClient = useQueryClient();
-  const inputStyles = useSensitiveInputStyles();
+  const { hidden } = usePrivacy();
   const [values, setValues] = useState<Record<string, string>>(() => ({
     public_metadata: stringify(initial.public_metadata),
     private_metadata: stringify(initial.private_metadata),
@@ -91,23 +99,46 @@ function MetadataForm({
           Edit metadata as JSON objects. An empty field clears that scope.
           Provided keys are merged into existing metadata.
         </Text>
-        {SCOPES.map((scope) => (
-          <JsonInput
-            key={scope.key}
-            label={scope.label}
-            description={scope.description}
-            value={values[scope.key]}
-            onChange={(v) => setValues((prev) => ({ ...prev, [scope.key]: v }))}
-            styles={inputStyles}
-            formatOnBlur
-            autosize
-            minRows={4}
-            validationError="Invalid JSON"
-            placeholder="{}"
-          />
-        ))}
+        {SCOPES.map((scope) =>
+          hidden ? (
+            // Render a masked stand-in so the metadata JSON (which may contain
+            // PII) is never placed in the DOM while privacy mode is on.
+            <TextInput
+              key={scope.key}
+              label={scope.label}
+              description={scope.description}
+              value="•••••••• hidden ••••••••"
+              readOnly
+              styles={{
+                input: {
+                  color: 'var(--mantine-color-dimmed)',
+                  userSelect: 'none',
+                },
+              }}
+            />
+          ) : (
+            <JsonInput
+              key={scope.key}
+              label={scope.label}
+              description={scope.description}
+              value={values[scope.key]}
+              onChange={(v) =>
+                setValues((prev) => ({ ...prev, [scope.key]: v }))
+              }
+              formatOnBlur
+              autosize
+              minRows={4}
+              validationError="Invalid JSON"
+              placeholder="{}"
+            />
+          ),
+        )}
         <Group justify="flex-end">
-          <Button loading={mutation.isPending} onClick={() => mutation.mutate()}>
+          <Button
+            loading={mutation.isPending}
+            disabled={hidden}
+            onClick={() => mutation.mutate()}
+          >
             Save metadata
           </Button>
         </Group>

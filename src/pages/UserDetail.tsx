@@ -69,14 +69,14 @@ export function UserDetail() {
           Users
         </Anchor>
         <Text>
-          <Sensitive>{primaryEmail(query.data, id)}</Sensitive>
+          <Sensitive reveal="email">{primaryEmail(query.data, id)}</Sensitive>
         </Text>
       </Breadcrumbs>
 
       <Group justify="space-between">
         <Stack gap={0}>
           <Title order={2}>
-            <Sensitive>{primaryEmail(query.data, id)}</Sensitive>
+            <Sensitive reveal="email">{primaryEmail(query.data, id)}</Sensitive>
           </Title>
           <Text size="sm" c="dimmed">
             <Sensitive>{id}</Sensitive>

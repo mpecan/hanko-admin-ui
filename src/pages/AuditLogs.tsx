@@ -122,7 +122,7 @@ export function AuditLogs() {
                     </Table.Td>
                     <Table.Td>
                       {log.actor_email || log.actor_user_id ? (
-                        <Sensitive>
+                        <Sensitive reveal="email">
                           {log.actor_email || log.actor_user_id}
                         </Sensitive>
                       ) : (
