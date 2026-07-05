@@ -6,6 +6,16 @@ authors = ["mpecan"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/mpecan/hanko-admin-ui"
+# Explicit allowlist so the vendored `frontend/` (gitignored) is packaged into
+# the published crate, making `cargo install hanko-admin` a fully usable app.
+include = [
+    "/src/**",
+    "/build.rs",
+    "/tauri.conf.json",
+    "/capabilities/**",
+    "/icons/**",
+    "/frontend/**",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

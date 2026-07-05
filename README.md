@@ -11,6 +11,22 @@ optional Bearer API key, and access-proxy authentication (manual headers or an
 automated CLI login). Credentials live **only in the Rust process memory** for
 the session and are **never written to disk**.
 
+## Installation
+
+**Homebrew (macOS):**
+
+```bash
+brew install mpecan/tools/hanko-admin
+```
+
+**crates.io (macOS/Linux):**
+
+```bash
+cargo install hanko-admin
+```
+
+Prebuilt macOS binaries are also attached to each [GitHub Release](https://github.com/mpecan/hanko-admin-ui/releases).
+
 ## Features
 
 - **Connection screen** — base URL, optional API key, and access-proxy

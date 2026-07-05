@@ -47,6 +47,11 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      # Build the frontend first (also type-checks) so Tauri embeds it into the
+      # crate (frontendDist) when the Rust steps below compile it.
+      - name: Build frontend
+        run: npm run build
+
       # The steps below mirror `mise run check`.
       - name: Check Rust formatting
         working-directory: src-tauri
@@ -59,9 +64,3 @@ jobs:
       - name: Run Rust tests
         working-directory: src-tauri
         run: cargo test
-
-      - name: Type-check frontend
-        run: npx tsc --noEmit
-
-      - name: Build frontend
-        run: npm run build

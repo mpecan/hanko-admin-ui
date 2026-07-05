@@ -1,0 +1,228 @@
+name: Release
+
+# Runs when release-please publishes a `v<version>` GitHub Release. Fans out to
+# prebuilt macOS binaries, crates.io, and the Homebrew tap.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to (re)build, e.g. v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+
+jobs:
+  build-binaries:
+    name: Build ${{ matrix.target }}
+    if: startsWith(inputs.tag || github.event.release.tag_name, 'v')
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - aarch64-apple-darwin
+          - x86_64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.target }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Build the frontend so Tauri embeds it into the binary (frontendDist).
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build release binary
+        working-directory: src-tauri
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package binary
+        shell: bash
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          ARCHIVE="hanko-admin-v${VERSION}-${{ matrix.target }}.tar.gz"
+          cp "src-tauri/target/${{ matrix.target }}/release/hanko-admin" hanko-admin
+          tar -czf "${ARCHIVE}" hanko-admin
+          shasum -a 256 "${ARCHIVE}" | awk '{print $1}' > "${ARCHIVE}.sha256"
+          echo "ARCHIVE=${ARCHIVE}" >> "$GITHUB_ENV"
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${RELEASE_TAG}" \
+            "${ARCHIVE}" "${ARCHIVE}.sha256" \
+            --repo "${{ github.repository }}" --clobber
+
+  crates:
+    name: Publish to crates.io
+    if: startsWith(inputs.tag || github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      # cargo publish verifies by building the Tauri crate → needs Linux deps.
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Vendor the built frontend into the crate so the *published* crate carries
+      # it (Cargo.toml `include` packages it; it stays gitignored locally).
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+
+      # Verify it actually compiles with the embedded frontend before publishing.
+      # (We publish with --no-verify below because tauri-build's build.rs writes
+      # gen/schemas into the source tree, which cargo's publish verify rejects;
+      # that write is harmless for `cargo install`, which builds in a temp dir.)
+      - name: Verify build
+        working-directory: src-tauri
+        run: cargo build --release
+
+      - name: cargo publish (idempotent)
+        working-directory: src-tauri
+        run: |
+          LOCAL=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name=="hanko-admin") | .version')
+          PUBLISHED=$(cargo search hanko-admin --limit 1 --color never | sed -n 's/^hanko-admin = "\([^"]*\)".*/\1/p' || true)
+          if [ "$LOCAL" = "$PUBLISHED" ]; then
+            echo "::notice::hanko-admin@$LOCAL already published, skipping"
+          else
+            # --allow-dirty: vendored frontend/ is gitignored/untracked.
+            # --no-verify: tauri-build's build.rs writes gen/schemas (see above).
+            cargo publish --allow-dirty --no-verify
+          fi
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  homebrew:
+    name: Update Homebrew tap
+    needs: build-binaries
+    if: startsWith(inputs.tag || github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute version
+        id: version
+        run: echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download SHA256 checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          for TARGET in aarch64-apple-darwin x86_64-apple-darwin; do
+            gh release download "${RELEASE_TAG}" \
+              --repo "${{ github.repository }}" \
+              --pattern "hanko-admin-v${VERSION}-${TARGET}.tar.gz.sha256" \
+              --output "${TARGET}.sha256"
+          done
+          echo "SHA_ARM_MAC=$(cat aarch64-apple-darwin.sha256)" >> "$GITHUB_ENV"
+          echo "SHA_INTEL_MAC=$(cat x86_64-apple-darwin.sha256)" >> "$GITHUB_ENV"
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.REPOSITORY_BUTLER_APP_ID }}
+          private-key: ${{ secrets.REPOSITORY_BUTLER_PEM }}
+          repositories: homebrew-tools
+
+      - name: Checkout homebrew-tools tap
+        uses: actions/checkout@v4
+        with:
+          repository: mpecan/homebrew-tools
+          token: ${{ steps.app-token.outputs.token }}
+          path: homebrew-tools
+
+      - name: Generate formula
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import os, textwrap
+          v = os.environ["VERSION"]
+          base = f"https://github.com/mpecan/hanko-admin-ui/releases/download/v{v}"
+          formula = textwrap.dedent(f"""
+            class HankoAdmin < Formula
+              desc "Desktop console for administering a Hanko installation"
+              homepage "https://github.com/mpecan/hanko-admin-ui"
+              version "{v}"
+              license "MIT"
+
+              on_macos do
+                on_arm do
+                  url "{base}/hanko-admin-v{v}-aarch64-apple-darwin.tar.gz"
+                  sha256 "{os.environ['SHA_ARM_MAC']}"
+                end
+                on_intel do
+                  url "{base}/hanko-admin-v{v}-x86_64-apple-darwin.tar.gz"
+                  sha256 "{os.environ['SHA_INTEL_MAC']}"
+                end
+              end
+
+              def install
+                bin.install "hanko-admin"
+              end
+
+              test do
+                assert_match "hanko-admin", shell_output("#{{bin}}/hanko-admin --version")
+              end
+            end
+          """).strip()
+          os.makedirs("homebrew-tools/Formula", exist_ok=True)
+          with open("homebrew-tools/Formula/hanko-admin.rb", "w") as f:
+              f.write(formula + "\n")
+          PY
+
+      - name: Commit and push
+        working-directory: homebrew-tools
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/hanko-admin.rb
+          if git diff --staged --quiet; then
+            echo "Formula unchanged, skipping commit"
+            exit 0
+          fi
+          git commit -m "hanko-admin ${{ steps.version.outputs.version }}"
+          git push

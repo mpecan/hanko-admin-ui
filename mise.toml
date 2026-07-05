@@ -60,5 +60,5 @@ description = "Run everything CI runs: format check, lint, tests, build"
 depends = ["fmt:check", "lint:rust", "test", "build"]
 
 [tasks.clean]
-description = "Remove build artifacts (dist + Rust target)"
-run = ["rm -rf dist", "cargo clean --manifest-path src-tauri/Cargo.toml"]
+description = "Remove build artifacts (built frontend + Rust target)"
+run = ["rm -rf src-tauri/frontend", "cargo clean --manifest-path src-tauri/Cargo.toml"]

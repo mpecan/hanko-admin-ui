@@ -88,6 +88,21 @@ src-tauri/src/       Rust backend
    template.
 5. CI must be green before review. A maintainer will take it from there.
 
+## Releases
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please),
+which relies on [Conventional Commits](https://www.conventionalcommits.org).
+Please prefix commits (or your squash-merge PR title) accordingly:
+
+- `feat: …` — a new feature (minor bump)
+- `fix: …` — a bug fix (patch bump)
+- `docs:`, `refactor:`, `perf:`, `test:`, `chore:`, `ci:` — as appropriate
+
+On merge to `main`, release-please maintains a "release PR" that updates the
+version (`src-tauri/Cargo.toml` + `tauri.conf.json`) and `CHANGELOG`. Merging
+that PR tags a `v<version>` release, which builds the macOS binaries, publishes
+to crates.io, and updates the Homebrew formula. Maintainers handle this.
+
 ## Reporting bugs & security issues
 
 - **Bugs / feature requests:** open a GitHub issue with steps to reproduce and,

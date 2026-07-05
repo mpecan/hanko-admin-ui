@@ -8,6 +8,15 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(async () => ({
   plugins: [react()],
 
+  // Emit the built frontend *inside* the Rust crate (src-tauri/frontend) so it
+  // can be vendored into the published crate and embedded by Tauri. This makes
+  // `cargo install hanko-admin` produce a fully usable app. The directory is
+  // gitignored and packaged via Cargo.toml `include`.
+  build: {
+    outDir: "src-tauri/frontend",
+    emptyOutDir: true,
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors
