@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { users } from '../../api/endpoints';
 import type { PatchUserInput, User } from '../../api/types';
+import { Sensitive, useSensitiveInputStyles } from '../../components/Sensitive';
 import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../lib/ui';
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -39,6 +40,7 @@ export function OverviewTab({
   onChanged: () => void;
 }) {
   const navigate = useNavigate();
+  const inputStyles = useSensitiveInputStyles();
 
   const form = useForm({
     initialValues: {
@@ -101,7 +103,7 @@ export function OverviewTab({
             Details
           </Title>
           <Stack gap="xs">
-            <InfoRow label="User ID" value={user.id} />
+            <InfoRow label="User ID" value={<Sensitive>{user.id}</Sensitive>} />
             <InfoRow label="Created" value={formatDate(user.created_at)} />
             <InfoRow label="Updated" value={formatDate(user.updated_at)} />
             <InfoRow
@@ -140,7 +142,9 @@ export function OverviewTab({
                 {identities.map((idn) => (
                   <Table.Tr key={idn.id}>
                     <Table.Td>{idn.provider_name}</Table.Td>
-                    <Table.Td>{idn.provider_id}</Table.Td>
+                    <Table.Td>
+                      <Sensitive>{idn.provider_id}</Sensitive>
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -161,6 +165,7 @@ export function OverviewTab({
               <TextInput
                 label="Username"
                 description="Clear to remove the username"
+                styles={inputStyles}
                 {...form.getInputProps('username')}
               />
               <TextInput

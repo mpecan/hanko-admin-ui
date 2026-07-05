@@ -23,6 +23,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { users } from '../api/endpoints';
 import { QueryError } from '../components/QueryError';
+import { Sensitive } from '../components/Sensitive';
 import { primaryEmail } from '../lib/ui';
 import { EmailsTab } from './user-detail/EmailsTab';
 import { MetadataTab } from './user-detail/MetadataTab';
@@ -46,14 +47,18 @@ export function UserDetail() {
         <Anchor component={Link} to="/users">
           Users
         </Anchor>
-        <Text>{primaryEmail(query.data, id)}</Text>
+        <Text>
+          <Sensitive>{primaryEmail(query.data, id)}</Sensitive>
+        </Text>
       </Breadcrumbs>
 
       <Group justify="space-between">
         <Stack gap={0}>
-          <Title order={2}>{primaryEmail(query.data, id)}</Title>
+          <Title order={2}>
+            <Sensitive>{primaryEmail(query.data, id)}</Sensitive>
+          </Title>
           <Text size="sm" c="dimmed">
-            {id}
+            <Sensitive>{id}</Sensitive>
           </Text>
         </Stack>
       </Group>

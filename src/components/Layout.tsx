@@ -14,6 +14,8 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import {
   IconChartBar,
+  IconEye,
+  IconEyeOff,
   IconLogout,
   IconMoon,
   IconShieldLock,
@@ -31,6 +33,7 @@ import {
 } from 'react-router-dom';
 
 import { useConnection } from '../context/ConnectionContext';
+import { usePrivacy } from '../context/PrivacyContext';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const NAV_ITEMS = [
@@ -44,6 +47,7 @@ const NAV_ITEMS = [
 export function Layout() {
   const [opened, { toggle }] = useDisclosure();
   const { info, disconnect } = useConnection();
+  const { hidden, toggle: togglePrivacy } = usePrivacy();
   const navigate = useNavigate();
   const location = useLocation();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -87,6 +91,22 @@ export function Layout() {
                 </Badge>
               </Tooltip>
             )}
+            <Tooltip
+              label={
+                hidden
+                  ? 'Show personal information'
+                  : 'Hide personal information'
+              }
+            >
+              <ActionIcon
+                variant={hidden ? 'filled' : 'subtle'}
+                color={hidden ? 'indigo' : undefined}
+                onClick={togglePrivacy}
+                aria-label="Toggle privacy mode"
+              >
+                {hidden ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+              </ActionIcon>
+            </Tooltip>
             <Tooltip label="Toggle color scheme">
               <ActionIcon
                 variant="subtle"

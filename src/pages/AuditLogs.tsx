@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { auditLogs } from '../api/endpoints';
 import { AUDIT_LOG_TYPES } from '../api/types';
 import { QueryError } from '../components/QueryError';
+import { Sensitive } from '../components/Sensitive';
 import { TablePagination } from '../components/TablePagination';
 import { formatDate } from '../lib/ui';
 
@@ -120,9 +121,21 @@ export function AuditLogs() {
                       </Badge>
                     </Table.Td>
                     <Table.Td>
-                      {log.actor_email || log.actor_user_id || '—'}
+                      {log.actor_email || log.actor_user_id ? (
+                        <Sensitive>
+                          {log.actor_email || log.actor_user_id}
+                        </Sensitive>
+                      ) : (
+                        '—'
+                      )}
                     </Table.Td>
-                    <Table.Td>{log.meta_source_ip || '—'}</Table.Td>
+                    <Table.Td>
+                      {log.meta_source_ip ? (
+                        <Sensitive>{log.meta_source_ip}</Sensitive>
+                      ) : (
+                        '—'
+                      )}
+                    </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="red" lineClamp={1} maw={220}>
                         {log.error || ''}

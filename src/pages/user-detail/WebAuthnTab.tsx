@@ -13,6 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { webauthn } from '../../api/endpoints';
 import type { WebAuthnCredential } from '../../api/types';
 import { QueryBoundary } from '../../components/QueryBoundary';
+import { Sensitive } from '../../components/Sensitive';
 import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../lib/ui';
 
 export function WebAuthnTab({ userId }: { userId: string }) {
@@ -63,7 +64,9 @@ export function WebAuthnTab({ userId }: { userId: string }) {
               <Table.Tbody>
                 {rows.map((cred) => (
                   <Table.Tr key={cred.id}>
-                    <Table.Td>{cred.name || '—'}</Table.Td>
+                    <Table.Td>
+                      {cred.name ? <Sensitive>{cred.name}</Sensitive> : '—'}
+                    </Table.Td>
                     <Table.Td>
                       <Group gap={4}>
                         <Badge variant="light" color="gray">

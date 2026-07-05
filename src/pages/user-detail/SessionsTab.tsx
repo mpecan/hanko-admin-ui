@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { sessions } from '../../api/endpoints';
 import type { Session } from '../../api/types';
 import { QueryBoundary } from '../../components/QueryBoundary';
+import { Sensitive } from '../../components/Sensitive';
 import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../lib/ui';
 
 export function SessionsTab({ userId }: { userId: string }) {
@@ -87,10 +88,20 @@ export function SessionsTab({ userId }: { userId: string }) {
               <Table.Tbody>
                 {rows.map((session) => (
                   <Table.Tr key={session.id}>
-                    <Table.Td>{session.ip_address ?? '—'}</Table.Td>
+                    <Table.Td>
+                      {session.ip_address ? (
+                        <Sensitive>{session.ip_address}</Sensitive>
+                      ) : (
+                        '—'
+                      )}
+                    </Table.Td>
                     <Table.Td>
                       <Text size="sm" lineClamp={1} maw={280}>
-                        {session.user_agent ?? '—'}
+                        {session.user_agent ? (
+                          <Sensitive>{session.user_agent}</Sensitive>
+                        ) : (
+                          '—'
+                        )}
                       </Text>
                     </Table.Td>
                     <Table.Td>{formatDate(session.last_used)}</Table.Td>

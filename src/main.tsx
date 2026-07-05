@@ -12,6 +12,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ConnectionProvider } from './context/ConnectionContext';
+import { PrivacyProvider } from './context/PrivacyContext';
 import { theme } from './theme';
 
 const queryClient = new QueryClient({
@@ -30,11 +31,13 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ConnectionProvider>
-            <ModalsProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </ModalsProvider>
+            <PrivacyProvider>
+              <ModalsProvider>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </ModalsProvider>
+            </PrivacyProvider>
           </ConnectionProvider>
         </QueryClientProvider>
       </ErrorBoundary>

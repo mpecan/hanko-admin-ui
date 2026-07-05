@@ -22,6 +22,7 @@ import { Link } from 'react-router-dom';
 import { users } from '../api/endpoints';
 import type { UserBase } from '../api/types';
 import { QueryError } from '../components/QueryError';
+import { Sensitive } from '../components/Sensitive';
 import { TablePagination } from '../components/TablePagination';
 import {
   confirmDelete,
@@ -132,10 +133,16 @@ export function Users() {
                   <Table.Tr key={user.id}>
                     <Table.Td>
                       <Anchor component={Link} to={`/users/${user.id}`}>
-                        {primaryEmail(user)}
+                        <Sensitive>{primaryEmail(user)}</Sensitive>
                       </Anchor>
                     </Table.Td>
-                    <Table.Td>{user.username?.username ?? '—'}</Table.Td>
+                    <Table.Td>
+                      {user.username?.username ? (
+                        <Sensitive>{user.username.username}</Sensitive>
+                      ) : (
+                        '—'
+                      )}
+                    </Table.Td>
                     <Table.Td>
                       <Badge variant="light" color="gray">
                         {user.webauthn_credentials?.length ?? 0}

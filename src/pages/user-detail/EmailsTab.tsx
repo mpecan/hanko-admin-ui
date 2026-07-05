@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { emails } from '../../api/endpoints';
 import type { Email } from '../../api/types';
 import { QueryBoundary } from '../../components/QueryBoundary';
+import { Sensitive } from '../../components/Sensitive';
 import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../lib/ui';
 
 export function EmailsTab({ userId }: { userId: string }) {
@@ -97,7 +98,9 @@ export function EmailsTab({ userId }: { userId: string }) {
             <Table.Tbody>
               {rows.map((email) => (
                 <Table.Tr key={email.id}>
-                  <Table.Td>{email.address}</Table.Td>
+                  <Table.Td>
+                    <Sensitive>{email.address}</Sensitive>
+                  </Table.Td>
                   <Table.Td>
                     <Group gap={6}>
                       {email.is_primary && (

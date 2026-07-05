@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { metadata } from '../../api/endpoints';
 import type { UserMetadata } from '../../api/types';
 import { QueryBoundary } from '../../components/QueryBoundary';
+import { useSensitiveInputStyles } from '../../components/Sensitive';
 import { notifyError, notifySuccess } from '../../lib/ui';
 
 function stringify(value: unknown): string {
@@ -57,6 +58,7 @@ function MetadataForm({
   initial: UserMetadata;
 }) {
   const queryClient = useQueryClient();
+  const inputStyles = useSensitiveInputStyles();
   const [values, setValues] = useState<Record<string, string>>(() => ({
     public_metadata: stringify(initial.public_metadata),
     private_metadata: stringify(initial.private_metadata),
@@ -96,6 +98,7 @@ function MetadataForm({
             description={scope.description}
             value={values[scope.key]}
             onChange={(v) => setValues((prev) => ({ ...prev, [scope.key]: v }))}
+            styles={inputStyles}
             formatOnBlur
             autosize
             minRows={4}
